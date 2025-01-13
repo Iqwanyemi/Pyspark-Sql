@@ -1,0 +1,28 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import expr, split
+
+# Initialize Spark session
+spark = SparkSession.builder.master("local").appName("Student Data Example").getOrCreate()
+
+# Create initial data with student_id and student_subject columns
+data = [
+    (1, "Math|85;Science|90;History|88"),
+    (2, "Math|78;Science|85;History|80")
+]
+
+# Define the columns for the DataFrame
+columns = ["student_id", "student_subject"]
+
+# Create the DataFrame
+df = spark.createDataFrame(data, columns)
+
+# Show the original DataFrame
+print("Original DataFrame:")
+df.show(truncate=False)
+
+df1=df.withColumn('student_subject',expr("split(student_subject,';')"))
+df1= df1.withColumn('student_subject',expr("explode(student_subject)"))
+df1.show()
+
+df2=df1.withColumn('mark',split('student_subject','\\|')[1]).withColumn('sub',split('student_subject','\\|')[0])
+df2.drop('student_subject').show()
